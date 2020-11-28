@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Inject } fr
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoggerService } from 'nest-microservices-logger';
-import { CommonModulePlatform } from '../common-config-options';
+import { CommonModulePlatform, CommonConfigOptions } from '../common-config-options';
 
 @Injectable()
 export class LoggerInterceptor implements NestInterceptor {

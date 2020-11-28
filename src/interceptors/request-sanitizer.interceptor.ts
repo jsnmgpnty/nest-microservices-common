@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Inject } fr
 import { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 import * as rawbody from 'raw-body';
-import { CommonModulePlatform } from '../common-config-options';
+import { CommonModulePlatform, CommonConfigOptions } from '../common-config-options';
 
 @Injectable()
 export class RequestSanitizerInterceptor implements NestInterceptor {

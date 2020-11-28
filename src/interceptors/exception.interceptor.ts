@@ -10,7 +10,7 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { LoggerService } from 'nest-microservices-logger';
-import { CommonModulePlatform } from '../common-config-options';
+import { CommonModulePlatform, CommonConfigOptions } from '../common-config-options';
 
 @Injectable()
 export class ExceptionInterceptor implements NestInterceptor {
