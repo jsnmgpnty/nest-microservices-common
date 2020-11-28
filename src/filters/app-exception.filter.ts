@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, Inject } from '@nestjs/common';
 import { Response } from 'express';
 import { CommonModulePlatform } from '../common-config-options';
 import { AppException } from '../models';
