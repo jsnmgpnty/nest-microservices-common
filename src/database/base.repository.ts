@@ -1,50 +1,67 @@
-import * as mongoose from 'mongoose';
-import * as moment from 'moment';
+import { Model, Types, FilterQuery, QueryOptions } from 'mongoose';
 import { BaseEntity } from '../models';
 
-export class BaseRepository<T extends BaseEntity> {
-  protected model: mongoose.Model<mongoose.Document>;
+const DEFAULT_LIMIT = 15;
+const DEFAULT_SKIP = 0;
 
-  constructor(schemaModel: mongoose.Model<mongoose.Document>) {
+export class BaseRepository<T extends BaseEntity> {
+  protected model: Model<T>;
+
+  constructor(schemaModel: Model<T>) {
     this.model = schemaModel;
   }
 
   public async create(item: T): Promise<T> {
-    item.createdDate = moment.utc(new Date()).toDate();
-    item.modifiedDate = moment.utc(new Date()).toDate();
-    return (await this.model.create(item)).toJSON() as T;
+    return ((await this.model.create(item)).toJSON() as unknown) as T;
   }
 
   public async getAll(): Promise<T[]> {
-    return await this.model.find({}).lean().exec() as T[];
+    return await this.model.find({}, null, { lean: true });
   }
 
   public async update(id: string, item: T): Promise<T> {
-    const parsedId = this.toObjectId(id);
-    item.modifiedDate = new Date();
-    const result = await this.model.update({ _id: parsedId }, item);
-    if (result.nModified !== 1) throw new Error(`Failed to update entity ${id}`);
-    return this.findById(id);
+    const result = await this.model.findByIdAndUpdate(id, item as any, {
+      upsert: true,
+      new: true,
+      lean: true,
+    });
+    if (!result) throw new Error(`Failed to update entity ${id}`);
+    return result;
   }
 
   public async delete(id: string): Promise<{ ok?: number; n?: number }> {
-    return await this.model.remove({ _id: this.toObjectId(id) });
+    return this.model.remove({ _id: BaseRepository.toObjectId(id) });
   }
 
   public async findById(id: string): Promise<T> {
-    return await this.model.findById(id).lean().exec() as T;
+    return this.model.findById(id, null, { lean: true });
   }
 
   public async findOne(cond?: object): Promise<T> {
-    return await this.model.findOne(cond).lean().exec() as T;
+    return this.model.findOne(cond, null, { lean: true });
   }
 
-  public async find(cond?: object, options?: object, sort?: object, skip: number = 0, take: number = 10): Promise<T[]> {
-    const result = await this.model.find(cond, options).skip(skip).limit(take).lean().exec();
-    return result as T[];
+  public async find(
+    cond?: FilterQuery<T>,
+    options?: FindModelOptions<T>,
+  ): Promise<T[]> {
+    const limit = options?.limit || DEFAULT_LIMIT;
+    const skip = options?.skip || DEFAULT_SKIP;
+    const sort = options?.sort;
+    const queryOptions: QueryOptions = { limit, skip, sort, lean: true };
+    const result = await this.model.find(cond, null, queryOptions);
+    return (result as unknown) as T[];
   }
 
-  private toObjectId(id: string): mongoose.Types.ObjectId {
-    return mongoose.Types.ObjectId.createFromHexString(id);
+  static toObjectId(id: string): Types.ObjectId {
+    return Types.ObjectId.createFromHexString(id);
   }
 }
+
+export type FindModelOptions<T> = {
+  limit?: number;
+  skip?: number;
+  sort?: {
+    [field in Exclude<keyof T, keyof Document>]?: number;
+  };
+};

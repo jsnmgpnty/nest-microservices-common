@@ -5,6 +5,7 @@
   "author": "",
   "license": "UNLICENSED",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "precommit": "npm run lint && npm run build",
     "prebuild": "rimraf dist",
